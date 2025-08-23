@@ -96,12 +96,24 @@ def eliminar_cliente(cliente_id):
     conn.close()
 
 def obtener_proveedores():
+    """Devuelve tuplas (id_proveedor, nombre, contacto, direccion)."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("SELECT id_proveedor, nombre, contacto FROM proveedores")
+    # Asegurarse de traer la dirección también
+    cursor.execute("SELECT id_proveedor, nombre, contacto, direccion FROM proveedores")
     proveedores = cursor.fetchall()
     conn.close()
-    return proveedores
+
+    # Por seguridad, normalizamos cada fila a 4 elementos (rellenando con cadena vacía si falta)
+    normalized = []
+    for row in proveedores:
+        if len(row) >= 4:
+            normalized.append((row[0], row[1], row[2], row[3]))
+        else:
+            # Rellenar con valores vacíos si la fila es corta (evita ValueError)
+            vals = list(row) + [""] * (4 - len(row))
+            normalized.append(tuple(vals[:4]))
+    return normalized
 
 def crear_proveedor(nombre, contacto, direccion):
     conn = sqlite3.connect(DB_NAME)
@@ -338,14 +350,23 @@ class EntityWindow(QWidget):
                 self.table.setItem(row_idx, 1, QTableWidgetItem(nombre))
                 self.table.setItem(row_idx, 2, QTableWidgetItem(contacto))
 
-        else:  # Proveedores
-            proveedores = obtener_proveedores()  # lista de tuplas (id, nombre, contacto, direccion)
-            for row_idx, (p_id, nombre, contacto, direccion) in enumerate(proveedores):
-                self.table.insertRow(row_idx)
-                self.table.setItem(row_idx, 0, QTableWidgetItem(str(p_id)))
-                self.table.setItem(row_idx, 1, QTableWidgetItem(nombre))
-                self.table.setItem(row_idx, 2, QTableWidgetItem(contacto))
-                self.table.setItem(row_idx, 3, QTableWidgetItem(direccion))
+        elif self.tipo == "Proveedores":
+                proveedores = obtener_proveedores()  # ahora devuelve (id, nombre, contacto, direccion)
+                self.table.setRowCount(len(proveedores))
+                for row_idx, prov in enumerate(proveedores):
+                    # prov puede ser (p_id, nombre, contacto, direccion)
+                    # por seguridad desempaquetamos con padding si hiciera falta
+                    if len(prov) == 4:
+                        p_id, nombre, contacto, direccion = prov
+                    else:
+                        # seguridad extra (no debería ocurrir porque normalizamos en obtener_proveedores)
+                        p = list(prov) + [""] * (4 - len(prov))
+                        p_id, nombre, contacto, direccion = p
+
+                    self.table.setItem(row_idx, 0, QTableWidgetItem(str(p_id)))
+                    self.table.setItem(row_idx, 1, QTableWidgetItem(nombre))
+                    self.table.setItem(row_idx, 2, QTableWidgetItem(contacto))
+                    self.table.setItem(row_idx, 3, QTableWidgetItem(direccion))
                 
     def delete_item(self):
         row = self.table.currentRow()
