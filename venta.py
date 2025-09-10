@@ -43,13 +43,7 @@ class VentasWindow(QMainWindow):
         # ======================
         # BOTÓN LIBERACIÓN (solo administradores)
         # ======================
-        self.btn_liberacion = QPushButton("Liberación")
-        self.btn_liberacion.clicked.connect(self.abrir_liberacion)
 
-        if self.role != "administrador":
-            self.btn_liberacion.setEnabled(False)  # deshabilitado para otros roles
-            self.btn_liberacion.setToolTip("Solo administradores pueden acceder")
-        form_layout.addWidget(self.btn_liberacion)
 
         # Cliente
         self.cliente_combo = QComboBox()
@@ -210,13 +204,6 @@ class VentasWindow(QMainWindow):
         self.load_ventas()
         QMessageBox.information(self, "Eliminado", "Venta eliminada correctamente.")
 
-    # --- Nuevo método para abrir Liberación ---
-    def abrir_liberacion(self):
-        if self.role != "administrador":
-            QMessageBox.warning(self, "Acceso denegado", "Solo administradores pueden acceder a Liberación.")
-            return
-        self.liberacion_window = LiberacionWindow()
-        self.liberacion_window.show()
 
 
 if __name__ == "__main__":
