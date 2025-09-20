@@ -101,7 +101,7 @@ class KardexWindow(QMainWindow):
         metodo_label = self.metodo_combo.currentText()
         if metodo_label.startswith("PMP"):
             metodo = "PMP"
-        elif metodo_label.startswith("PEPS"):
+        elif metodo_label.startswith("UEPS"):
             metodo = "PEPS"
         else:
             metodo = "UEPS"
